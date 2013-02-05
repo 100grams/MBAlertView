@@ -51,15 +51,22 @@ extern CGFloat MBAlertViewDefaultHUDHideDelay;
 // body is the main text of the alert
 @property (nonatomic, copy) NSString *bodyText;
 @property (nonatomic, strong) UIFont *bodyFont;
+@property (nonatomic, strong) UIColor *bodyTextColor;
 
-// just set the imageView's image to activate
-@property (nonatomic, strong) UIImageView *imageView;
+// just set the iconImageView's image to activate
+@property (nonatomic, strong) UIImageView *iconImageView;
 
 // if not assigned, will be full screen
 @property (nonatomic, assign) CGSize size;
 
-// the opacity of the background
+// the opacity of the background.
 @property (nonatomic, assign) float backgroundAlpha;
+
+// set the background image for the alert view. If none set, uses black color as background.
+@property (nonatomic, strong) UIImage *backgroundImage;
+
+// content edge insets will shift alert label icon accordingly
+@property (nonatomic, assign) UIEdgeInsets contentEdgeInsets;
 
 -(void)dismiss;
 -(void)addToDisplayQueue;

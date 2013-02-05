@@ -20,6 +20,8 @@
 
 #import "MBAlertViewSubclass.h"
 
+#define kIconLabelMargin 30
+
 NSString *const MBAlertViewDidAppearNotification = @"MBAlertViewDidAppearNotification";
 NSString *const MBAlertViewDidDismissNotification = @"MBAlertViewDidDismissNotification";
 
@@ -254,11 +256,19 @@ static MBAlertView *currentAlert;
     else
     {
         _backgroundButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.bounds.size.width/2.0 - self.size.width/2.0 , self.view.bounds.size.height/2.0 - self.size.height/2.0, self.size.width, self.size.height)];
-        _backgroundButton.layer.cornerRadius = 8;
         _contentRect = _backgroundButton.frame;
     }
     
-    [_backgroundButton setBackgroundColor:[UIColor blackColor]];
+    if (self.backgroundImage) {
+        [_backgroundButton setBackgroundColor:[UIColor clearColor]];
+        UIImage *bgImage = [self.backgroundImage resizableImageWithCapInsets:UIEdgeInsetsMake(16, 16, 16, 16)];
+        [_backgroundButton setBackgroundImage:bgImage forState:UIControlStateNormal];
+    }
+    else{
+        [_backgroundButton setBackgroundColor:[UIColor blackColor]];
+        _backgroundButton.layer.cornerRadius = isFullScreen? 0 : 8;
+
+    }
     _backgroundButton.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleWidth;
     _backgroundButton.alpha = _backgroundAlpha > 0 ? _backgroundAlpha : 0.85;
     [_backgroundButton addTarget:self action:@selector(didSelectBackgroundButton:) forControlEvents:UIControlEventTouchUpInside];
@@ -285,7 +295,10 @@ static MBAlertView *currentAlert;
     
     CGSize size = [_bodyText sizeWithFont:self.bodyFont constrainedToSize:[self labelConstraint]];
     NSString *txt = [_bodyText stringByTruncatingToSize:size withFont:self.bodyFont addQuotes:NO];
-    _bodyLabelButton = [[UIButton alloc] initWithFrame:CGRectMake(_contentRect.origin.x + _contentRect.size.width/2.0 - size.width/2.0, _contentRect.origin.y + _contentRect.size.height/2.0 - size.height/2.0 - 8 + _imageView.frame.size.height, size.width, size.height)];
+    _bodyLabelButton = [[UIButton alloc] initWithFrame:CGRectMake(_contentRect.origin.x + _contentRect.size.width/2.0 - size.width/2.0 + self.contentEdgeInsets.left,
+                                                                  CGRectGetMidY(_contentRect) - (size.height - _iconImageView.frame.size.height  - kIconLabelMargin)/2.0 + self.contentEdgeInsets.top - self.contentEdgeInsets.bottom,
+                                                                  size.width,
+                                                                  size.height)];
     _bodyLabelButton.autoresizingMask = [self defaultAutoResizingMask];
     [_bodyLabelButton addTarget:self action:@selector(didSelectBodyLabel:) forControlEvents:UIControlEventTouchUpInside];
     [_bodyLabelButton setTitle:_bodyText forState:UIControlStateNormal];
@@ -298,26 +311,27 @@ static MBAlertView *currentAlert;
     return _bodyLabelButton;
 }
 
--(UIImageView*)imageView
+-(UIImageView*)iconImageView
 {
-    if(_imageView)
-        return _imageView;
-    _imageView = [[UIImageView alloc] init];
-    return _imageView;
+    if(_iconImageView)
+        return _iconImageView;
+    _iconImageView = [[UIImageView alloc] init];
+    return _iconImageView;
 }
 
 -(void)layoutView
 {
-    if(_imageView)
+    if(_iconImageView)
     {
-        [_imageView sizeToFit];
-        CGRect rect = self.imageView.frame;
-        rect.origin = CGPointMake(self.contentRect.origin.x + (self.contentRect.size.width/2.0 - rect.size.width/2.0), 0);
-        _imageView.frame = rect;
-        [self.view addSubview:self.imageView];
+        [_iconImageView sizeToFit];
+        CGRect rect = self.iconImageView.frame;
+        rect.origin = CGPointMake(self.contentRect.origin.x + (self.contentRect.size.width/2.0 - rect.size.width/2.0) + self.contentEdgeInsets.left, CGRectGetMidY(_contentRect) - (self.bodyLabelButton.frame.size.height + rect.size.height  + kIconLabelMargin)/2.0 + self.contentEdgeInsets.top);
+        _iconImageView.frame = rect;
+        _iconImageView.autoresizingMask = [self defaultAutoResizingMask];
+        [self.view addSubview:self.iconImageView];
     }
         
-    UIColor *titleColor = [UIColor whiteColor];
+    UIColor *titleColor = self.bodyTextColor? self.bodyTextColor : [UIColor whiteColor];
     [self.bodyLabelButton setTitleColor:titleColor forState:UIControlStateNormal];
     
     [_bodyLabelButton setBackgroundColor:[UIColor clearColor]];
@@ -340,9 +354,9 @@ static MBAlertView *currentAlert;
 {
     [_buttons enumerateObjectsUsingBlock:^(MBAlertViewButton *button, NSUInteger idx, BOOL *stop)
     {
-        if(_imageView)
+        if(_iconImageView)
         {
-            [_backgroundButton centerViewsVerticallyWithin:@[@{@"view" : _imageView, @"offset" : [NSNumber numberWithFloat:0]}, @{@"view" : self.bodyLabelButton, @"offset" : [NSNumber numberWithFloat:20]}, @{@"view" : button, @"offset" : [NSNumber numberWithFloat:20]}]];
+            [_backgroundButton centerViewsVerticallyWithin:@[@{@"view" : _iconImageView, @"offset" : [NSNumber numberWithFloat:0]}, @{@"view" : self.bodyLabelButton, @"offset" : [NSNumber numberWithFloat:20]}, @{@"view" : button, @"offset" : [NSNumber numberWithFloat:20]}]];
         }
         else
         {
