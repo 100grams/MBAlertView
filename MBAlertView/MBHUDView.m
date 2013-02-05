@@ -22,7 +22,7 @@
 @end
 
 @implementation MBHUDView
-@synthesize bodyLabelButton = _bodyLabelButton, imageView = _imageView, bodyFont = _bodyFont;
+@synthesize bodyLabelButton = _bodyLabelButton, iconImageView = _iconImageView, bodyFont = _bodyFont;
 
 +(MBHUDView*)hudWithBody:(NSString*)body type:(MBAlertViewHUDType)type hidesAfter:(float)delay show:(BOOL)show
 {
@@ -98,11 +98,11 @@
 
 -(UIImageView*)imageView
 {
-    if(_imageView)
-        return _imageView;
-    _imageView = [[UIImageView alloc] init];
-    _imageView.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin;
-    return _imageView;
+    if(_iconImageView)
+        return _iconImageView;
+    _iconImageView = [[UIImageView alloc] init];
+    _iconImageView.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin;
+    return _iconImageView;
 }
 
 -(void)loadView
@@ -138,13 +138,13 @@
 {
     CGRect bodyRect = self.bodyLabelButton.frame;
     
-    if(_imageView)
+    if(_iconImageView)
     {
-        [_imageView sizeToFit];
-        CGRect rect = self.imageView.frame;
+        [_iconImageView sizeToFit];
+        CGRect rect = self.iconImageView.frame;
         rect.origin = CGPointMake(self.contentRect.origin.x + (self.contentRect.size.width/2.0 - rect.size.width/2.0), 0);
-        self.imageView.frame = rect;
-        [self.view addSubview:self.imageView];
+        self.iconImageView.frame = rect;
+        [self.view addSubview:self.iconImageView];
     }
     
     else if(_hudType == MBAlertViewHUDTypeActivityIndicator)
@@ -201,9 +201,9 @@
 
 -(void)centerViews
 {
-    if(_imageView)
+    if(_iconImageView)
     {
-        [_backgroundButton centerViewsVerticallyWithin:@[@{@"view" : self.imageView, @"offset" : [NSNumber numberWithFloat:self.iconOffset.height]}, @{@"view" : self.bodyLabelButton, @"offset" : [NSNumber numberWithFloat:10 + _bodyOffset.height]}]];
+        [_backgroundButton centerViewsVerticallyWithin:@[@{@"view" : self.iconImageView, @"offset" : [NSNumber numberWithFloat:self.iconOffset.height]}, @{@"view" : self.bodyLabelButton, @"offset" : [NSNumber numberWithFloat:10 + _bodyOffset.height]}]];
     }
     else if(_hudType == MBAlertViewHUDTypeActivityIndicator)
     {
