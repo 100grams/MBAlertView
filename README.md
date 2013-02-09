@@ -17,6 +17,44 @@ MBAlertView is a fun and simple block-based alert and HUD library for iOS, as se
 	<li>Doesn't use any PNG files. Everything is drawn with code.</li>
 </ul>
 
+### Extended Features in this fork
+
+``` objective-c
+// create an alert view with 'title' and 'message', using default colors, layout and no buttons
+    MBAlertView *alert = [MBAlertView alertWithTitle:title message:message];
+
+// set the title font
+    alert.titleFont = [UIFont fontWithName:@"MyCustomFont-Regular"  size:22];
+
+// set custom background image for the alert view.
+    alert.backgroundImage = [UIImage imageNamed:@"Popup_Box_Background"];
+
+// set the size for the alert view, in this case match the background image size
+	alert.size = alert.backgroundImage.size;
+
+/* By default, the message of the alert is centered in the alert's bounds. 
+   However, our Popup_Box_Background contains drop shadow, 
+   which offsets the actual center from the visible center of the popup rect (without the shadow).
+   offset the content upward a bit by setting contentEdgeInsets 
+*/
+    alert.contentEdgeInsets = UIEdgeInsetsMake(0, 0, 14, 0);
+
+// add custom cancel button
+   UIImage *image = [UIImage imageNamed:@"Cancel_Button_Background"];
+   UIButton *button = [[UIButton alloc] initWithFrame:(CGRect){CGPointZero, image.size}];
+   [button setBackgroundImage:image forState:UIControlStateNormal];
+   [button.titleLabel setFont:[UIFont fontWithName:@"MyCustomFont-Regular" size:16]];
+   [button setTitle:cancelTitle forState:UIControlStateNormal];
+    
+   [alert addCustomButton:button block:^{
+   		// any button automatically dismisses the alert view
+   		// this block is useful for additional handler code after the alert is dismissed. 
+   }]; 
+ 
+   [alert addToDisplayQueue];
+```
+
+
 ## Usage
 
 There are two factory methods to get you started:
@@ -24,12 +62,16 @@ There are two factory methods to get you started:
 ### Alerts
 
 ``` objective-c
-MBAlertView *alert = [MBAlertView alertWithBody:@"Are you sure you want to delete this note? You cannot undo this." cancelTitle:@"Cancel" cancelBlock:nil];
-[alert addButtonWithText:@"Delete" type:MBAlertViewItemTypeDestructive block:^{}];
+// Create an alert with a standard canel button
++(MBAlertView*)alertWithTitle:(NSString*)title message:(NSString*)body cancelTitle:(NSString*)cancelTitle cancelBlock:(id)cancelBlock;
+
+// Create an alert with no buttons (you can add buttons using addButtonWithText: or addCustomButton:)
++(MBAlertView*)alertWithTitle:(NSString*)title message:(NSString*)body;
 [alert addToDisplayQueue];
 ```
 
 ### HUDs
+
 ``` objective-c
 [MBHUDView hudWithBody:@"Wait." type:MBAlertViewHUDTypeActivityIndicator hidesAfter:4.0 show:YES];
 ```
