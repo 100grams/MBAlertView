@@ -30,6 +30,7 @@ CGFloat MBAlertViewDefaultHUDHideDelay = 0.65;
 
 @interface MBAlertView ()
 @property (nonatomic, strong) NSMutableArray *items;
+@property (nonatomic, strong) UILabel        *titleLabel;
 @end
 
 @implementation MBAlertView
@@ -58,10 +59,19 @@ static MBAlertView *currentAlert;
     return CGSizeMake(280, 240);
 }
 
-+(MBAlertView*)alertWithBody:(NSString*)body cancelTitle:(NSString*)cancelTitle cancelBlock:(id)cancelBlock
+
++(MBAlertView*)alertWithTitle:(NSString*)title message:(NSString*)body;
 {
     MBAlertView *alert = [[MBAlertView alloc] init];
     alert.bodyText = body;
+    alert.titleText = title;
+    return alert;
+}
+
+
++(MBAlertView*)alertWithTitle:(NSString*)title message:(NSString*)body cancelTitle:(NSString*)cancelTitle cancelBlock:(id)cancelBlock
+{
+    MBAlertView *alert = [MBAlertView alertWithTitle:title message:body];
     if(cancelTitle)
         [alert addButtonWithText:cancelTitle type:MBAlertViewItemTypeDefault block:cancelBlock];
     return alert;
@@ -177,6 +187,9 @@ static MBAlertView *currentAlert;
     }
 }
 
+#pragma  mark - Buttons 
+
+
 -(void)didSelectButton:(MBAlertViewButton*)button
 {
     if(button.tag >= _items.count)
@@ -220,16 +233,36 @@ static MBAlertView *currentAlert;
     return _items;
 }
 
+
+- (MBAlertViewItem*) buttonItemAtIndex : (NSUInteger) index;
+{
+    if (index < [self.items count]) {
+        return [self.items objectAtIndex:index];
+    }
+    return nil;
+}
+
 -(void)addButtonWithText:(NSString*)text type:(MBAlertViewItemType)type block:(id)block
 {
     MBAlertViewItem *item = [[MBAlertViewItem alloc] initWithTitle:text type:type block:block];
     [self.items addObject:item];
 }
 
+-(void)addCustomButton:(UIButton*)button block:(id)block;
+{
+    MBAlertViewItem *item = [[MBAlertViewItem alloc] initWithTitle:button.titleLabel.text type:MBAlertViewItemTypeCustom block:block];
+    [self.items addObject:item];
+    item.customButton = button;
+}
+
+
 -(int)defaultAutoResizingMask
 {
     return UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin;
 }
+
+
+#pragma mark - Layout
 
 #define kBodyFont [UIFont boldSystemFontOfSize:20]
 #define kSpaceBetweenButtons 30
@@ -255,13 +288,15 @@ static MBAlertView *currentAlert;
     }
     else
     {
-        _backgroundButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.bounds.size.width/2.0 - self.size.width/2.0 , self.view.bounds.size.height/2.0 - self.size.height/2.0, self.size.width, self.size.height)];
+        CGRect rect = CGRectMake(self.view.bounds.size.width/2.0 - self.size.width/2.0 , self.view.bounds.size.height/2.0 - self.size.height/2.0, self.size.width, self.size.height);
+        _backgroundButton = [[UIButton alloc] initWithFrame:CGRectIntegral(rect)];
         _contentRect = _backgroundButton.frame;
     }
     
     if (self.backgroundImage) {
         [_backgroundButton setBackgroundColor:[UIColor clearColor]];
-        UIImage *bgImage = [self.backgroundImage resizableImageWithCapInsets:UIEdgeInsetsMake(16, 16, 16, 16)];
+        CGSize refSize =self.backgroundImage.size;
+        UIImage *bgImage = [self.backgroundImage resizableImageWithCapInsets:UIEdgeInsetsMake(refSize.height*0.4, refSize.width*0.4, refSize.height*0.4, refSize.width*0.4)];
         [_backgroundButton setBackgroundImage:bgImage forState:UIControlStateNormal];
     }
     else{
@@ -283,10 +318,24 @@ static MBAlertView *currentAlert;
     return _bodyFont;
 }
 
+-(UIFont*)titleFont
+{
+    if(_titleFont)
+        return _titleFont;
+    _titleFont = [UIFont boldSystemFontThatFitsSize:[self labelConstraint] maxFontSize:32 minSize:24 text:self.titleText];
+    return _titleFont;
+}
+
 -(CGSize)labelConstraint
 {
     return CGSizeMake(self.contentRect.size.width - 40, self.contentRect.size.height - 100);
 }
+
+-(CGSize)titleConstraint
+{
+    return CGSizeMake(self.contentRect.size.width - 10, 40);
+}
+
 
 -(UIButton*)bodyLabelButton
 {
@@ -311,6 +360,27 @@ static MBAlertView *currentAlert;
     return _bodyLabelButton;
 }
 
+
+- (UILabel*) titleLabel
+{
+    if (!_titleLabel) {
+        
+        CGSize size = [self titleConstraint];
+        NSString *txt = [_titleText stringByTruncatingToSize:size withFont:self.titleFont addQuotes:NO];
+        CGRect frame = CGRectMake(CGRectGetMidX(_contentRect) - size.width/2 , CGRectGetMinY(_contentRect)+5, size.width, size.height);
+        _titleLabel = [[UILabel alloc] initWithFrame:frame];
+        _titleLabel.autoresizingMask = [self defaultAutoResizingMask];//UIViewAutoresizingFlexibleBottomMargin + UIViewAutoresizingFlexibleLeftMargin + UIViewAutoresizingFlexibleRightMargin;
+        _titleLabel.text = txt;
+        _titleLabel.font = self.titleFont;
+        _titleLabel.textAlignment = NSTextAlignmentCenter;
+        _titleLabel.backgroundColor = [UIColor clearColor];
+        [self.view addSubview:_titleLabel];
+
+    }
+    
+    return _titleLabel;
+}
+
 -(UIImageView*)iconImageView
 {
     if(_iconImageView)
@@ -331,21 +401,34 @@ static MBAlertView *currentAlert;
         [self.view addSubview:self.iconImageView];
     }
         
-    UIColor *titleColor = self.bodyTextColor? self.bodyTextColor : [UIColor whiteColor];
-    [self.bodyLabelButton setTitleColor:titleColor forState:UIControlStateNormal];
+    UIColor *bodyColor = self.bodyTextColor? self.bodyTextColor : [UIColor whiteColor];
+    UIColor *titleColor = self.titleTextColor? self.titleTextColor : [UIColor whiteColor];
+    [self.bodyLabelButton setTitleColor:bodyColor forState:UIControlStateNormal];
+    [self.titleLabel setTextColor:titleColor];
     
     [_bodyLabelButton setBackgroundColor:[UIColor clearColor]];
-    [self.view addSubview:_bodyLabelButton];
+//    [self.view addSubview:_bodyLabelButton];
     _buttons = [[NSMutableArray alloc] init];
     
     [self.items enumerateObjectsUsingBlock:^(MBAlertViewItem *item, NSUInteger index, BOOL *stop)
      {
-         MBAlertViewButton *buttonLabel = [[MBAlertViewButton alloc] initWithTitle:item.title];
-         [buttonLabel addTarget:self action:@selector(didSelectButton:) forControlEvents:UIControlEventTouchUpInside];
-         [buttonLabel addTarget:self action:@selector(didHighlightButton:) forControlEvents:UIControlEventTouchDown];
-         [buttonLabel addTarget:self action:@selector(didRemoveHighlightFromButton:) forControlEvents:UIControlEventTouchUpOutside | UIControlEventTouchDragExit | UIControlEventTouchCancel];
-         buttonLabel.tag = index;
-         [_buttons addObject:buttonLabel];         
+         if (item.type != MBAlertViewItemTypeCustom) {
+
+             MBAlertViewButton *buttonLabel = [[MBAlertViewButton alloc] initWithTitle:item.title];
+             [buttonLabel addTarget:self action:@selector(didSelectButton:) forControlEvents:UIControlEventTouchUpInside];
+             [buttonLabel addTarget:self action:@selector(didHighlightButton:) forControlEvents:UIControlEventTouchDown];
+             [buttonLabel addTarget:self action:@selector(didRemoveHighlightFromButton:) forControlEvents:UIControlEventTouchUpOutside | UIControlEventTouchDragExit | UIControlEventTouchCancel];
+             buttonLabel.tag = index;
+             [_buttons addObject:buttonLabel];
+         }
+         else{
+             item.customButton.tag = index;
+             [item.customButton addTarget:self action:@selector(didSelectButton:) forControlEvents:UIControlEventTouchUpInside];
+//             [item.customButton addTarget:self action:@selector(didHighlightButton:) forControlEvents:UIControlEventTouchDown];
+//             [item.customButton addTarget:self action:@selector(didRemoveHighlightFromButton:) forControlEvents:UIControlEventTouchUpOutside | UIControlEventTouchDragExit | UIControlEventTouchCancel];
+             [item.customButton setTitle:item.title forState:UIControlStateNormal];
+             [_buttons addObject:item.customButton];
+         }
      }];
     
 }
@@ -390,7 +473,7 @@ static MBAlertView *currentAlert;
     
     [self.items enumerateObjectsUsingBlock:^(MBAlertViewItem *item, NSUInteger index, BOOL *stop)
      {
-         MBAlertViewButton *buttonLabel = [_buttons objectAtIndex:index];
+         UIButton *buttonLabel = [_buttons objectAtIndex:index];
          float origin = 0;
          if(index == 0)
              origin = currentXOrigin;
@@ -398,14 +481,17 @@ static MBAlertView *currentAlert;
          
          currentXOrigin = origin + buttonLabel.bounds.size.width;
          float yOrigin = _bodyLabelButton.frame.origin.y + _bodyLabelButton.frame.size.height ;
-
+         
          CGRect rect = buttonLabel.frame;
          rect.origin = CGPointMake(origin, yOrigin);
          buttonLabel.frame = rect;
-         buttonLabel.alertButtonType = item.type;
-         
+
+         if (item.type != MBAlertViewItemTypeCustom) {
+             ((MBAlertViewButton *)buttonLabel).alertButtonType = item.type;
+         }
          if(!buttonLabel.superview)
              [self.view addSubview:buttonLabel];
+
      }];
 }
 

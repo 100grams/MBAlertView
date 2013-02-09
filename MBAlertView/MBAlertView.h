@@ -48,6 +48,11 @@ extern CGFloat MBAlertViewDefaultHUDHideDelay;
 // offset for HUD icons, or image offset if supplied
 @property (nonatomic, assign) CGSize iconOffset;
 
+// title of the alert
+@property (nonatomic, copy) NSString *titleText;
+@property (nonatomic, strong) UIFont *titleFont;
+@property (nonatomic, strong) UIColor *titleTextColor;
+
 // body is the main text of the alert
 @property (nonatomic, copy) NSString *bodyText;
 @property (nonatomic, strong) UIFont *bodyFont;
@@ -71,10 +76,22 @@ extern CGFloat MBAlertViewDefaultHUDHideDelay;
 -(void)dismiss;
 -(void)addToDisplayQueue;
 -(void)addButtonWithText:(NSString*)text type:(MBAlertViewItemType)type block:(id)block;
+-(void)addCustomButton:(UIButton*)button block:(id)block;
+
+// accessing button items in the alert
+- (MBAlertViewItem*) buttonItemAtIndex : (NSUInteger) index;
+
 
 #pragma mark Class methods
-// factory method
-+(MBAlertView*)alertWithBody:(NSString*)body cancelTitle:(NSString*)cancelTitle cancelBlock:(id)cancelBlock;
+// factory methods
+
+// Create an alert with a standard canel button
++(MBAlertView*)alertWithTitle:(NSString*)title message:(NSString*)body cancelTitle:(NSString*)cancelTitle cancelBlock:(id)cancelBlock;
+
+// Create an alert with no buttons (you can add buttons using addButtonWithText: or addCustomButton:)
++(MBAlertView*)alertWithTitle:(NSString*)title message:(NSString*)body;
+
+
 
 // yes if there is currently an alert or hud on screen
 +(BOOL)alertIsVisible;
