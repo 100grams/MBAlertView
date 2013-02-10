@@ -333,7 +333,7 @@ static MBAlertView *currentAlert;
 
 -(CGSize)titleConstraint
 {
-    return CGSizeMake(self.contentRect.size.width - 10, 40);
+    return CGSizeMake(self.contentRect.size.width - 10, self.size.height * 0.2);
 }
 
 
