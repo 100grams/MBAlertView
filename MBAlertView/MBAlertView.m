@@ -277,7 +277,12 @@ static MBAlertView *currentAlert;
     CGRect bounds = [[UIScreen mainScreen] bounds];
     self.view = [[UIView alloc] initWithFrame:bounds];
     [self.view setBackgroundColor:[UIColor clearColor]];
-    self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleTopMargin;
+    if (self.autoresizing) {
+        self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleTopMargin;
+    }
+    else{
+        self.view.autoresizingMask = UIViewAutoresizingFlexibleBottomMargin + UIViewAutoresizingFlexibleTopMargin + UIViewAutoresizingFlexibleRightMargin + UIViewAutoresizingFlexibleLeftMargin;
+    }
     
     BOOL isFullScreen = [self isFullScreen];
     if(isFullScreen)
@@ -593,5 +598,7 @@ static MBAlertView *currentAlert;
 {
     return (interfaceOrientation == UIInterfaceOrientationPortrait);
 }
+
+
 
 @end

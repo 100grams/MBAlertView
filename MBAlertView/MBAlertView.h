@@ -73,6 +73,9 @@ extern CGFloat MBAlertViewDefaultHUDHideDelay;
 // content edge insets will shift alert label icon accordingly
 @property (nonatomic, assign) UIEdgeInsets contentEdgeInsets;
 
+// set to YES to autoresize the alert when orientation changes. Default is NO.
+@property (nonatomic, assign, getter = isAutoresizing) BOOL autoresizing;
+
 -(void)dismiss;
 -(void)addToDisplayQueue;
 -(void)addButtonWithText:(NSString*)text type:(MBAlertViewItemType)type block:(id)block;
