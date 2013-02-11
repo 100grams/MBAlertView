@@ -274,10 +274,14 @@ static MBAlertView *currentAlert;
 
 -(void)loadView
 {
-    CGRect bounds = [[UIScreen mainScreen] bounds];
+    CGRect bounds = [[UIScreen mainScreen] bounds]; // portrait bounds
+    if (UIInterfaceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation])) {
+        bounds.size = CGSizeMake(bounds.size.height, bounds.size.width);
+    }
+    
     self.view = [[UIView alloc] initWithFrame:bounds];
     [self.view setBackgroundColor:[UIColor clearColor]];
-    if (self.autoresizing) {
+    if (self.isAutoresizing) {
         self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleTopMargin;
     }
     else{
