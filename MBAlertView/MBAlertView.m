@@ -276,7 +276,10 @@ static MBAlertView *currentAlert;
 {
     CGRect bounds = [[UIScreen mainScreen] bounds]; // portrait bounds
     if (UIInterfaceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation])) {
-        bounds.size = CGSizeMake(bounds.size.height, bounds.size.width);
+        bounds.size = CGSizeMake(MAX(bounds.size.height, bounds.size.width), MIN(bounds.size.height, bounds.size.width));
+    }
+    else{
+        bounds.size = CGSizeMake(MIN(bounds.size.height, bounds.size.width), MAX(bounds.size.height, bounds.size.width));
     }
     
     self.view = [[UIView alloc] initWithFrame:bounds];
