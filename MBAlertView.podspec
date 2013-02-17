@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
   s.license      = 'MIT'
   s.license      = { :type => 'MIT', :file => 'LICENSE' }
   s.author       = { "Mo Bitar" => "me@mbbitar.com" }
-  s.source       = { :git => 'https://github.com/100grams/MBAlertView.git', :commit => '5650aed8e3' }
+  s.source       = { :git => 'https://github.com/100grams/MBAlertView.git', :commit => '9e9b51c5b3' }
   s.platform     = :ios
 
   s.source_files = 'MBAlertView/**/*.{h,m}'
