@@ -27,6 +27,7 @@
 #import <UIKit/UIKit.h>
 #import "MBAlertViewItem.h"
 
+
 // notifications called when an alert/hud appears/disappears
 extern NSString *const MBAlertViewDidAppearNotification;
 extern NSString *const MBAlertViewDidDismissNotification;
@@ -53,10 +54,14 @@ extern CGFloat MBAlertViewDefaultHUDHideDelay;
 @property (nonatomic, strong) UIFont *titleFont;
 @property (nonatomic, strong) UIColor *titleTextColor;
 
-// body is the main text of the alert
+// body is the main text of the alert. Ignored if customBodyView is non-nil.
 @property (nonatomic, copy) NSString *bodyText;
 @property (nonatomic, strong) UIFont *bodyFont;
 @property (nonatomic, strong) UIColor *bodyTextColor;
+
+// you can set a custom view for the body. Default is nil.
+// if customBodyView.frame.size > self.size, it will be scaled down to fit inside the alert. Otherwise, if customBodyView.frame.size <= sel.size, it is centered in the alert.
+@property (nonatomic, strong) UIView *customBodyView;
 
 // just set the iconImageView's image to activate
 @property (nonatomic, strong) UIImageView *iconImageView;
