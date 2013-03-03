@@ -573,12 +573,18 @@ static MBAlertView *currentAlert;
 
 -(void)addBounceAnimationToLayer:(CALayer*)layer
 {
-    NSArray *frameValues = @[[NSValue valueWithCATransform3D:CATransform3DMakeScale(0.1, 0.1, 1)],
-                            [NSValue valueWithCATransform3D:CATransform3DMakeScale(1.35, 1.35, 1)],
-                            [NSValue valueWithCATransform3D:CATransform3DMakeScale(0.8, 0.8, 1)],
-                            [NSValue valueWithCATransform3D:CATransform3DMakeScale(1.0, 1.0, 1)]];
-    NSArray *frameTimes = @[@(0.0), @(0.5), @(0.9), @(1.0)];
-    [layer addAnimation:[self animationWithValues:frameValues times:frameTimes duration:0.4] forKey:@"popup"];
+    if (self.appearAnimation) {
+        [layer addAnimation:self.appearAnimation forKey:@"popup"];
+    }
+    else{
+        NSArray *frameValues = @[[NSValue valueWithCATransform3D:CATransform3DMakeScale(0.1, 0.1, 1)],
+                                 [NSValue valueWithCATransform3D:CATransform3DMakeScale(1.35, 1.35, 1)],
+                                 [NSValue valueWithCATransform3D:CATransform3DMakeScale(0.8, 0.8, 1)],
+                                 [NSValue valueWithCATransform3D:CATransform3DMakeScale(1.0, 1.0, 1)]];
+        NSArray *frameTimes = @[@(0.0), @(0.5), @(0.9), @(1.0)];
+        [layer addAnimation:[self animationWithValues:frameValues times:frameTimes duration:0.4] forKey:@"popup"];
+    }
+
 }
 
 -(void)didSelectBodyLabel:(UIButton*)bodyLabelButton

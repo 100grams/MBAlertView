@@ -26,6 +26,7 @@
 
 #import <UIKit/UIKit.h>
 #import "MBAlertViewItem.h"
+#import <QuartzCore/QuartzCore.h>
 
 
 // notifications called when an alert/hud appears/disappears
@@ -80,6 +81,10 @@ extern CGFloat MBAlertViewDefaultHUDHideDelay;
 
 // set to YES to autoresize the alert when orientation changes. Default is NO.
 @property (nonatomic, assign, getter = isAutoresizing) BOOL autoresizing;
+
+// customize animation for alert appearance
+@property (nonatomic, strong) CAKeyframeAnimation *appearAnimation;
+-(CAKeyframeAnimation*)animationWithValues:(NSArray*)values times:(NSArray*)times duration:(CGFloat)duration;
 
 -(void)dismiss;
 -(void)addToDisplayQueue;
