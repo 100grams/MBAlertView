@@ -485,7 +485,8 @@ static MBAlertView *currentAlert;
         }
         else if([self.titleLabel.text length])
         {
-            [_backgroundButton centerViewsVerticallyWithin:@[@{@"view" : self.bodyLabelButton, @"offset" : [NSNumber numberWithFloat:0]}, @{@"view" : button, @"offset" : [NSNumber numberWithFloat:5]}]];
+            float offset = MAX(0, (_backgroundButton.frame.size.height - self.titleLabel.frame.size.height - self.bodyLabelButton.frame.size.height - button.frame.size.height - 5.0 - 10.0) / 2.0);  //5px top offset, 10px bottom offset
+            [_backgroundButton centerViewsVerticallyWithin:@[@{@"view" : self.bodyLabelButton, @"offset" : [NSNumber numberWithFloat:0]}, @{@"view" : button, @"offset" : [NSNumber numberWithFloat:offset]}]];
         }
         else{
             [_backgroundButton centerViewsVerticallyWithin:@[@{@"view" : self.titleLabel, @"offset" : [NSNumber numberWithFloat:0]}, @{@"view" : self.bodyLabelButton, @"offset" : [NSNumber numberWithFloat:0]}, @{@"view" : button, @"offset" : [NSNumber numberWithFloat:5]}]];
