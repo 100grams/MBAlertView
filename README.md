@@ -29,6 +29,12 @@ MBAlertView is a fun and simple block-based alert and HUD library for iOS, as se
 // set custom background image for the alert view.
     alert.backgroundImage = [UIImage imageNamed:@"Popup_Box_Background"];
 
+// set custom body view for the alert body part. This allows e.g. to have a separate body-part background image or more complex view heirarchy for the body part only. Default is nil, in which case the alert will use the bodyText in the body area.
+    alert.customBodyView = [NSBundle mainBundle] loadNibNamed:@"AlertBodyView" owner:nil options:nil];
+
+// By default the alert will mask the underlying view with semi-transparent black mask.
+	alert.addsMask = NO; // default is YES
+	
 // set the size for the alert view, in this case match the background image size
 	alert.size = alert.backgroundImage.size;
 
