@@ -16,6 +16,7 @@
         _title = text;
         _type = type;
         _block = block;
+        self.dismissesAlert = YES;
     }
     return self;
 }

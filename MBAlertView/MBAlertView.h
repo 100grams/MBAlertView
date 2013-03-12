@@ -28,7 +28,6 @@
 #import "MBAlertViewItem.h"
 #import <QuartzCore/QuartzCore.h>
 
-
 // notifications called when an alert/hud appears/disappears
 extern NSString *const MBAlertViewDidAppearNotification;
 extern NSString *const MBAlertViewDidDismissNotification;
@@ -47,6 +46,9 @@ extern CGFloat MBAlertViewDefaultHUDHideDelay;
 // huds by default are put on super view controller. however sometimes a hud appears right before a modal disappears. in that case we'll add the hud to the window
 @property (nonatomic, assign) BOOL addsToWindow;
 
+// Set to YES to add a semi-transparent mask over the background. default is YES.
+@property (nonatomic, assign) BOOL addsMask;
+
 // offset for HUD icons, or image offset if supplied
 @property (nonatomic, assign) CGSize iconOffset;
 
@@ -59,6 +61,7 @@ extern CGFloat MBAlertViewDefaultHUDHideDelay;
 @property (nonatomic, copy) NSString *bodyText;
 @property (nonatomic, strong) UIFont *bodyFont;
 @property (nonatomic, strong) UIColor *bodyTextColor;
+@property (nonatomic, strong) UIImage *bodyCustomImage;
 
 // you can set a custom view for the body. Default is nil.
 // if customBodyView.frame.size > self.size, it will be scaled down to fit inside the alert. Otherwise, if customBodyView.frame.size <= sel.size, it is centered in the alert.
@@ -79,6 +82,9 @@ extern CGFloat MBAlertViewDefaultHUDHideDelay;
 // content edge insets will shift alert label icon accordingly
 @property (nonatomic, assign) UIEdgeInsets contentEdgeInsets;
 
+@property (nonatomic, assign) int titleInset;
+@property (nonatomic, assign) int bodyInset;
+
 // set to YES to autoresize the alert when orientation changes. Default is NO.
 @property (nonatomic, assign, getter = isAutoresizing) BOOL autoresizing;
 
@@ -89,7 +95,7 @@ extern CGFloat MBAlertViewDefaultHUDHideDelay;
 -(void)dismiss;
 -(void)addToDisplayQueue;
 -(void)addButtonWithText:(NSString*)text type:(MBAlertViewItemType)type block:(id)block;
--(void)addCustomButton:(UIButton*)button block:(id)block;
+-(void)addCustomButton:(UIButton*)button dismissesAlert:(BOOL)dismisses block:(id)block;
 
 // accessing button items in the alert
 - (MBAlertViewItem*) buttonItemAtIndex : (NSUInteger) index;

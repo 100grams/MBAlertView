@@ -31,6 +31,8 @@ CGFloat MBAlertViewDefaultHUDHideDelay = 0.65;
 @interface MBAlertView ()
 @property (nonatomic, strong) NSMutableArray *items;
 @property (nonatomic, strong) UILabel        *titleLabel;
+@property (nonatomic, strong) UIView         *maskView;
+
 @end
 
 @implementation MBAlertView
@@ -87,6 +89,7 @@ static MBAlertView *currentAlert;
     if(self = [super init])
     {
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(setRotation:)name:UIApplicationDidChangeStatusBarOrientationNotification object:nil];
+        self.addsMask = YES;
     }
     
     return self;
@@ -115,17 +118,49 @@ static MBAlertView *currentAlert;
 }
 
 -(void)addToWindow
-{
+{    
     UIWindow * window = [UIApplication sharedApplication].keyWindow;
     if (!window)
         window = [[UIApplication sharedApplication].windows objectAtIndex:0];
 
-    if(self.addsToWindow)
+    UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
+    
+    if (self.addsMask && !self.maskView) {
+        CGRect frame = window.frame;
+        if(orientation == UIDeviceOrientationLandscapeLeft || orientation == UIDeviceOrientationLandscapeRight)
+            frame.size = CGSizeMake(frame.size.height, frame.size.width);
+        self.maskView = [[UIView alloc] initWithFrame:frame];
+        self.maskView.backgroundColor = [UIColor blackColor];
+        self.maskView.alpha = 0.7;
+    }
+    
+    if(self.addsToWindow){
+        if (self.maskView) {
+            [window addSubview:self.maskView];
+        }
         [window addSubview:self.view];
-    else [[[window subviews] objectAtIndex:0] addSubview:self.view];
+    }
+    else {
+        if (self.maskView) {
+            [[[window subviews] objectAtIndex:0] addSubview:self.maskView];
+        }
+        [[[window subviews] objectAtIndex:0] addSubview:self.view];
+    }
     
     [self performLayoutOfButtons];
     [self centerViews];
+    
+    self.titleLabel.frame = CGRectMake(self.titleLabel.frame.origin.x, self.titleLabel.frame.origin.y + self.titleInset, self.titleLabel.frame.size.width, self.titleLabel.frame.size.height);
+    
+    
+    if(orientation == UIDeviceOrientationLandscapeLeft || orientation == UIDeviceOrientationLandscapeRight)
+    {
+        self.bodyLabelButton.frame = CGRectMake(self.bodyLabelButton.frame.origin.x, self.bodyLabelButton.frame.origin.y + self.bodyInset - 3, self.bodyLabelButton.frame.size.width, self.bodyLabelButton.frame.size.height);
+    }
+    else
+    {
+        self.bodyLabelButton.frame = CGRectMake(self.bodyLabelButton.frame.origin.x, self.bodyLabelButton.frame.origin.y + self.bodyInset, self.bodyLabelButton.frame.size.width, self.bodyLabelButton.frame.size.height);
+    }
     
     [window resignFirstRespondersForSubviews];
     
@@ -175,7 +210,8 @@ static MBAlertView *currentAlert;
     {
         ((void (^)())block)();
     }
-   
+    
+    [self.maskView removeFromSuperview];
     [self.view removeFromSuperview];
     [retainQueue removeObject:self];
     
@@ -201,7 +237,7 @@ static MBAlertView *currentAlert;
     id block = item.block;
     if (![block isEqual:[NSNull null]] && block)
     {
-        if(self.shouldPerformBlockAfterDismissal && block)
+        if(item.dismissesAlert && self.shouldPerformBlockAfterDismissal && block)
             self.uponDismissalBlock = block;
         else ((void (^)())block)();
         [[NSNotificationCenter defaultCenter] postNotificationName:MBAlertViewDidDismissNotification object:nil];
@@ -211,7 +247,9 @@ static MBAlertView *currentAlert;
         [[NSNotificationCenter defaultCenter] postNotificationName:MBAlertViewDidDismissNotification object:nil];
     }
     
-    [self performSelector:@selector(dismiss) withObject:nil afterDelay:0.12];
+    if (item.dismissesAlert) {
+        [self performSelector:@selector(dismiss) withObject:nil afterDelay:0.12];        
+    }
 }
 
 
@@ -248,9 +286,10 @@ static MBAlertView *currentAlert;
     [self.items addObject:item];
 }
 
--(void)addCustomButton:(UIButton*)button block:(id)block;
+-(void)addCustomButton:(UIButton*)button dismissesAlert:(BOOL)dismisses block:(id)block ;
 {
     MBAlertViewItem *item = [[MBAlertViewItem alloc] initWithTitle:button.titleLabel.text type:MBAlertViewItemTypeCustom block:block];
+    item.dismissesAlert = dismisses;
     [self.items addObject:item];
     item.customButton = button;
 }
@@ -265,7 +304,7 @@ static MBAlertView *currentAlert;
 #pragma mark - Layout
 
 #define kBodyFont [UIFont boldSystemFontOfSize:20]
-#define kSpaceBetweenButtons 30
+#define kSpaceBetweenButtons 15
 
 -(BOOL)isFullScreen
 {
@@ -275,13 +314,14 @@ static MBAlertView *currentAlert;
 -(void)loadView
 {
     CGRect bounds = [[UIScreen mainScreen] bounds]; // portrait bounds
-    if (UIInterfaceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation])) {
+    UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
+    if (UIInterfaceOrientationIsLandscape(orientation)) {
         bounds.size = CGSizeMake(MAX(bounds.size.height, bounds.size.width), MIN(bounds.size.height, bounds.size.width));
     }
     else{
         bounds.size = CGSizeMake(MIN(bounds.size.height, bounds.size.width), MAX(bounds.size.height, bounds.size.width));
     }
-    
+
     self.view = [[UIView alloc] initWithFrame:bounds];
     [self.view setBackgroundColor:[UIColor clearColor]];
     if (self.isAutoresizing) {
@@ -292,7 +332,15 @@ static MBAlertView *currentAlert;
     }
     
     BOOL isFullScreen = [self isFullScreen];
-    if(isFullScreen)
+        
+    if(orientation == UIDeviceOrientationLandscapeLeft || orientation == UIDeviceOrientationLandscapeRight)
+    {
+//        self.size = CGSizeMake(self.size.width, self.size.height);
+        CGRect rect = CGRectMake(self.view.bounds.size.width/2.0 - self.size.width/2.0 , (self.view.bounds.size.height/2.0 - (self.size.height)/2.0), self.size.width, self.size.height);
+        _backgroundButton = [[UIButton alloc] initWithFrame:CGRectIntegral(rect)];
+        _contentRect = _backgroundButton.frame;
+    }
+    else if(isFullScreen)
     {
         _contentRect = CGRectMake(0, 0, bounds.size.width, bounds.size.height);
         _backgroundButton = [[UIButton alloc] initWithFrame:CGRectMake(-100, -100, bounds.size.width + 200, bounds.size.height + 200)];
@@ -317,7 +365,7 @@ static MBAlertView *currentAlert;
 
     }
     _backgroundButton.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleWidth;
-    _backgroundButton.alpha = _backgroundAlpha > 0 ? _backgroundAlpha : 0.85;
+    _backgroundButton.alpha = _backgroundAlpha > 0 ? _backgroundAlpha : 1;
     [_backgroundButton addTarget:self action:@selector(didSelectBackgroundButton:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:_backgroundButton];
 }
@@ -398,13 +446,16 @@ static MBAlertView *currentAlert;
 }
 
 
+
 - (UILabel*) titleLabel
 {
     if (!_titleLabel) {
         
+        CGRect rect = _backgroundButton.frame;
+        
         CGSize size = [self titleConstraint];
         NSString *txt = [_titleText stringByTruncatingToSize:size withFont:self.titleFont addQuotes:NO];
-        CGRect frame = CGRectMake(CGRectGetMidX(_contentRect) - size.width/2 , CGRectGetMinY(_contentRect)+5, size.width, size.height);
+        CGRect frame = CGRectMake(CGRectGetMidX(_contentRect) - size.width/2, CGRectGetMinY(_contentRect)+5, size.width, size.height);
         _titleLabel = [[UILabel alloc] initWithFrame:frame];
         _titleLabel.autoresizingMask = [self defaultAutoResizingMask];//UIViewAutoresizingFlexibleBottomMargin + UIViewAutoresizingFlexibleLeftMargin + UIViewAutoresizingFlexibleRightMargin;
         _titleLabel.text = txt;
@@ -467,7 +518,6 @@ static MBAlertView *currentAlert;
              [_buttons addObject:item.customButton];
          }
      }];
-    
 }
 
 -(void)centerViews
@@ -494,6 +544,7 @@ static MBAlertView *currentAlert;
     }];
 }
 
+
 // lays out button on rotation
 -(void)layoutButtonsWrapper
 {
@@ -506,7 +557,7 @@ static MBAlertView *currentAlert;
 -(void)performLayoutOfButtons
 {
     CGRect bounds = self.view.bounds;
-    float totalWidth = 0;
+    int totalWidth = 0;
     for(MBAlertViewButton *item in _buttons) {
         CGSize size = item.frame.size;
         totalWidth += size.width + kSpaceBetweenButtons;
@@ -514,19 +565,19 @@ static MBAlertView *currentAlert;
     
     totalWidth -= kSpaceBetweenButtons;
     
-    float xOrigOfFirstItem = bounds.size.width/2.0 - totalWidth/2.0;
+    int xOrigOfFirstItem = bounds.size.width/2.0 - totalWidth/2.0;
     __block float currentXOrigin = xOrigOfFirstItem;
     
     [self.items enumerateObjectsUsingBlock:^(MBAlertViewItem *item, NSUInteger index, BOOL *stop)
      {
          UIButton *buttonLabel = [_buttons objectAtIndex:index];
-         float origin = 0;
+         int origin = 0;
          if(index == 0)
              origin = currentXOrigin;
          else origin = currentXOrigin + kSpaceBetweenButtons;
          
          currentXOrigin = origin + buttonLabel.bounds.size.width;
-         float yOrigin = CGRectGetMaxY(_bodyLabelButton.frame) ;
+         int yOrigin = CGRectGetMaxY(_bodyLabelButton.frame);
          
          CGRect rect = buttonLabel.frame;
          rect.origin = CGPointMake(origin, yOrigin);
@@ -539,6 +590,42 @@ static MBAlertView *currentAlert;
              [self.view addSubview:buttonLabel];
 
      }];
+    
+ //   UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
+/*
+    if(orientation == UIDeviceOrientationLandscapeLeft || orientation == UIDeviceOrientationLandscapeRight)
+    {
+        CGSize size = [_bodyText sizeWithFont:self.bodyFont constrainedToSize:[self labelConstraint]];
+        if (self.bodyCustomImage)
+            size = self.bodyCustomImage.size;
+        
+        bounds = CGRectMake(0, 0, _backgroundButton.frame.size.width, size.height + 140);
+        int landscapeOffset = 10;
+        
+        self.size = bounds.size;
+        CGRect rect = CGRectMake(self.view.bounds.size.width/2.0 - self.size.width/2.0 , (self.view.bounds.size.height/2.0 - (self.size.height)/2.0) + landscapeOffset, self.size.width, self.size.height);
+        _backgroundButton.frame = rect;
+        _contentRect = _backgroundButton.frame;
+        
+        self.titleLabel.frame = CGRectMake(self.titleLabel.frame.origin.x, _contentRect.origin.y+4, self.titleLabel.frame.size.width, self.titleLabel.frame.size.height);
+    }
+*/
+    /*
+    
+    UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
+    
+    if(orientation == UIDeviceOrientationLandscapeLeft || orientation == UIDeviceOrientationLandscapeRight)
+    {
+        CGSize size = [_bodyText sizeWithFont:self.bodyFont constrainedToSize:[self labelConstraint]];
+        
+        int heightIncrease = size.height - 50;
+
+        self.size = CGSizeMake(self.size.width, self.size.height+heightIncrease);
+        CGRect rect = CGRectMake(self.view.bounds.size.width/2.0 - self.size.width/2.0 , (self.view.bounds.size.height/2.0 - (self.size.height+heightIncrease)/2.0), self.size.width, self.size.height + heightIncrease);
+        _backgroundButton.frame = rect;
+        _contentRect = _backgroundButton.frame;
+    }
+     */
 }
 
 
@@ -645,7 +732,5 @@ static MBAlertView *currentAlert;
 {
     return (interfaceOrientation == UIInterfaceOrientationPortrait);
 }
-
-
 
 @end

@@ -20,5 +20,6 @@ typedef enum {
 @property (nonatomic, copy) NSString *title;
 @property (nonatomic, assign) MBAlertViewItemType type;
 @property (nonatomic, strong) UIButton *customButton;
+@property (nonatomic, assign) BOOL dismissesAlert; // default is YES
 -(id)initWithTitle:(NSString*)text type:(MBAlertViewItemType)type block:(id)block;
 @end

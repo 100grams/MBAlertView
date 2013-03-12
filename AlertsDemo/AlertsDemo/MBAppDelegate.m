@@ -21,10 +21,10 @@
     self.window.rootViewController = controller;
     
     [MBHUDView hudWithBody:@"Hello" type:MBAlertViewHUDTypeCheckmark hidesAfter:1.0 show:YES];
-    MBAlertView *alert = [MBAlertView alertWithBody:@"Do you want to see more? (Note: you don't have a choice)" cancelTitle:nil cancelBlock:nil];
+    MBAlertView *alert = [MBAlertView alertWithTitle:nil message:@"Do you want to see more? (Note: you don't have a choice)"];
     [alert addButtonWithText:@"Yes" type:MBAlertViewItemTypePositive block:^{
         [MBHUDView hudWithBody:@"Say please" type:MBAlertViewHUDTypeExclamationMark hidesAfter:1.5 show:YES];
-        MBAlertView *please = [MBAlertView alertWithBody:@"Did you say please?" cancelTitle:nil cancelBlock:nil];
+        MBAlertView *please = [MBAlertView alertWithTitle:nil message:@"Did you say please?"];
         please.size = CGSizeMake(280, 180);
         [please addButtonWithText:@"Yes" type:MBAlertViewItemTypePositive block:^{
         
@@ -32,8 +32,8 @@
             [MBHUDView hudWithBody:@"Wait." type:MBAlertViewHUDTypeActivityIndicator hidesAfter:4.0 show:YES];
             [MBHUDView hudWithBody:@"Ready?" type:MBAlertViewHUDTypeDefault hidesAfter:2.0 show:YES];
             
-            MBAlertView *destruct = [MBAlertView alertWithBody:@"Do you want your device to self-destruct?" cancelTitle:nil cancelBlock:nil];
-            destruct.imageView.image = [UIImage imageNamed:@"image.png"];
+            MBAlertView *destruct = [MBAlertView alertWithTitle:nil message:@"Do you want your device to self-destruct?"];
+            destruct.iconImageView.image = [UIImage imageNamed:@"image.png"];
             [destruct addButtonWithText:@"Yes please" type:MBAlertViewItemTypeDestructive block:^{
                 [MBHUDView hudWithBody:@"Ok" type:MBAlertViewHUDTypeCheckmark hidesAfter:1.0 show:YES];
                 [MBHUDView hudWithBody:@"5" type:MBAlertViewHUDTypeDefault hidesAfter:1.0 show:YES];
