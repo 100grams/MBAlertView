@@ -274,10 +274,17 @@ static MBAlertView *currentAlert;
 
 -(void)loadView
 {
-    CGRect bounds = [[UIScreen mainScreen] bounds];
+    CGRect bounds = [[UIScreen mainScreen] bounds]; // portrait bounds
+    if (UIInterfaceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation])) {
+        bounds.size = CGSizeMake(MAX(bounds.size.height, bounds.size.width), MIN(bounds.size.height, bounds.size.width));
+    }
+    else{
+        bounds.size = CGSizeMake(MIN(bounds.size.height, bounds.size.width), MAX(bounds.size.height, bounds.size.width));
+    }
+    
     self.view = [[UIView alloc] initWithFrame:bounds];
     [self.view setBackgroundColor:[UIColor clearColor]];
-    if (self.autoresizing) {
+    if (self.isAutoresizing) {
         self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleTopMargin;
     }
     else{
@@ -347,20 +354,45 @@ static MBAlertView *currentAlert;
     if(_bodyLabelButton)
         return _bodyLabelButton;
     
-    CGSize size = [_bodyText sizeWithFont:self.bodyFont constrainedToSize:[self labelConstraint]];
-    NSString *txt = [_bodyText stringByTruncatingToSize:size withFont:self.bodyFont addQuotes:NO];
-    _bodyLabelButton = [[UIButton alloc] initWithFrame:CGRectMake(_contentRect.origin.x + _contentRect.size.width/2.0 - size.width/2.0 + self.contentEdgeInsets.left,
-                                                                  CGRectGetMidY(_contentRect) - (size.height - _iconImageView.frame.size.height  - kIconLabelMargin)/2.0 + self.contentEdgeInsets.top - self.contentEdgeInsets.bottom,
-                                                                  size.width,
-                                                                  size.height)];
-    _bodyLabelButton.autoresizingMask = [self defaultAutoResizingMask];
-    [_bodyLabelButton addTarget:self action:@selector(didSelectBodyLabel:) forControlEvents:UIControlEventTouchUpInside];
-    [_bodyLabelButton setTitle:_bodyText forState:UIControlStateNormal];
-    
-    _bodyLabelButton.titleLabel.text = txt;
-    _bodyLabelButton.titleLabel.font = self.bodyFont;
-    _bodyLabelButton.titleLabel.numberOfLines = 0;
-    _bodyLabelButton.titleLabel.textAlignment = NSTextAlignmentCenter;
+    if (self.customBodyView) {
+        
+        CGSize size = self.customBodyView.frame.size;
+        CGSize constraint = [self labelConstraint];
+        if (size.width > constraint.width) {
+            size.width = constraint.width;
+        }
+        if (size.height > constraint.height) {
+            size.height = constraint.height;
+        }
+        CGRect frame = CGRectMake(_contentRect.origin.x + _contentRect.size.width/2.0 - size.width/2.0 + self.contentEdgeInsets.left,
+                                  CGRectGetMidY(_contentRect) - (size.height - _iconImageView.frame.size.height  - kIconLabelMargin)/2.0 + self.contentEdgeInsets.top - self.contentEdgeInsets.bottom,
+                                  size.width,
+                                  size.height);
+        frame = CGRectIntegral(frame);
+        self.customBodyView.frame = (CGRect){CGPointZero, frame.size};
+        _bodyLabelButton = [[UIButton alloc] initWithFrame:frame];
+        _bodyLabelButton.autoresizingMask = [self defaultAutoResizingMask];
+        [_bodyLabelButton addTarget:self action:@selector(didSelectBodyLabel:) forControlEvents:UIControlEventTouchUpInside];
+        [_bodyLabelButton addSubview:self.customBodyView];
+    }
+    else{
+
+        CGSize size = [_bodyText sizeWithFont:self.bodyFont constrainedToSize:[self labelConstraint]];
+        NSString *txt = [_bodyText stringByTruncatingToSize:size withFont:self.bodyFont addQuotes:NO];
+        _bodyLabelButton = [[UIButton alloc] initWithFrame:CGRectMake(_contentRect.origin.x + _contentRect.size.width/2.0 - size.width/2.0 + self.contentEdgeInsets.left,
+                                                                      CGRectGetMidY(_contentRect) - (size.height - _iconImageView.frame.size.height  - kIconLabelMargin)/2.0 + self.contentEdgeInsets.top - self.contentEdgeInsets.bottom,
+                                                                      size.width,
+                                                                      size.height)];
+        _bodyLabelButton.autoresizingMask = [self defaultAutoResizingMask];
+        [_bodyLabelButton addTarget:self action:@selector(didSelectBodyLabel:) forControlEvents:UIControlEventTouchUpInside];
+        [_bodyLabelButton setTitle:_bodyText forState:UIControlStateNormal];
+        
+        _bodyLabelButton.titleLabel.text = txt;
+        _bodyLabelButton.titleLabel.font = self.bodyFont;
+        _bodyLabelButton.titleLabel.numberOfLines = 0;
+        _bodyLabelButton.titleLabel.textAlignment = NSTextAlignmentCenter;
+
+    }
     [self.view addSubview:_bodyLabelButton];
     return _bodyLabelButton;
 }
@@ -444,11 +476,20 @@ static MBAlertView *currentAlert;
     {
         if(_iconImageView)
         {
-            [_backgroundButton centerViewsVerticallyWithin:@[@{@"view" : _iconImageView, @"offset" : [NSNumber numberWithFloat:0]}, @{@"view" : self.bodyLabelButton, @"offset" : [NSNumber numberWithFloat:20]}, @{@"view" : button, @"offset" : [NSNumber numberWithFloat:20]}]];
+            if ([self.titleLabel.text length]) {
+                [_backgroundButton centerViewsVerticallyWithin:@[@{@"view" : _iconImageView, @"offset" : [NSNumber numberWithFloat:0]}, @{@"view" : self.bodyLabelButton, @"offset" : [NSNumber numberWithFloat:5]}, @{@"view" : button, @"offset" : [NSNumber numberWithFloat:20]}]];
+            }
+            else{
+                [_backgroundButton centerViewsVerticallyWithin:@[@{@"view" : self.titleLabel, @"offset" : [NSNumber numberWithFloat:0]}, @{@"view" : _iconImageView, @"offset" : [NSNumber numberWithFloat:0]}, @{@"view" : self.bodyLabelButton, @"offset" : [NSNumber numberWithFloat:0]}, @{@"view" : button, @"offset" : [NSNumber numberWithFloat:5]}]];
+            }
         }
-        else
+        else if([self.titleLabel.text length])
         {
-            [_backgroundButton centerViewsVerticallyWithin:@[@{@"view" : self.bodyLabelButton, @"offset" : [NSNumber numberWithFloat:0]}, @{@"view" : button, @"offset" : [NSNumber numberWithFloat:20]}]];
+            float offset = MAX(0, (_backgroundButton.frame.size.height - self.titleLabel.frame.size.height - self.bodyLabelButton.frame.size.height - button.frame.size.height - 5.0 - 10.0) / 2.0);  //5px top offset, 10px bottom offset
+            [_backgroundButton centerViewsVerticallyWithin:@[@{@"view" : self.bodyLabelButton, @"offset" : [NSNumber numberWithFloat:0]}, @{@"view" : button, @"offset" : [NSNumber numberWithFloat:offset]}]];
+        }
+        else{
+            [_backgroundButton centerViewsVerticallyWithin:@[@{@"view" : self.titleLabel, @"offset" : [NSNumber numberWithFloat:0]}, @{@"view" : self.bodyLabelButton, @"offset" : [NSNumber numberWithFloat:0]}, @{@"view" : button, @"offset" : [NSNumber numberWithFloat:5]}]];
         }
     }];
 }
@@ -485,7 +526,7 @@ static MBAlertView *currentAlert;
          else origin = currentXOrigin + kSpaceBetweenButtons;
          
          currentXOrigin = origin + buttonLabel.bounds.size.width;
-         float yOrigin = _bodyLabelButton.frame.origin.y + _bodyLabelButton.frame.size.height ;
+         float yOrigin = CGRectGetMaxY(_bodyLabelButton.frame) ;
          
          CGRect rect = buttonLabel.frame;
          rect.origin = CGPointMake(origin, yOrigin);
@@ -533,12 +574,18 @@ static MBAlertView *currentAlert;
 
 -(void)addBounceAnimationToLayer:(CALayer*)layer
 {
-    NSArray *frameValues = @[[NSValue valueWithCATransform3D:CATransform3DMakeScale(0.1, 0.1, 1)],
-                            [NSValue valueWithCATransform3D:CATransform3DMakeScale(1.35, 1.35, 1)],
-                            [NSValue valueWithCATransform3D:CATransform3DMakeScale(0.8, 0.8, 1)],
-                            [NSValue valueWithCATransform3D:CATransform3DMakeScale(1.0, 1.0, 1)]];
-    NSArray *frameTimes = @[@(0.0), @(0.5), @(0.9), @(1.0)];
-    [layer addAnimation:[self animationWithValues:frameValues times:frameTimes duration:0.4] forKey:@"popup"];
+    if (self.appearAnimation) {
+        [layer addAnimation:self.appearAnimation forKey:@"popup"];
+    }
+    else{
+        NSArray *frameValues = @[[NSValue valueWithCATransform3D:CATransform3DMakeScale(0.1, 0.1, 1)],
+                                 [NSValue valueWithCATransform3D:CATransform3DMakeScale(1.35, 1.35, 1)],
+                                 [NSValue valueWithCATransform3D:CATransform3DMakeScale(0.8, 0.8, 1)],
+                                 [NSValue valueWithCATransform3D:CATransform3DMakeScale(1.0, 1.0, 1)]];
+        NSArray *frameTimes = @[@(0.0), @(0.5), @(0.9), @(1.0)];
+        [layer addAnimation:[self animationWithValues:frameValues times:frameTimes duration:0.4] forKey:@"popup"];
+    }
+
 }
 
 -(void)didSelectBodyLabel:(UIButton*)bodyLabelButton
