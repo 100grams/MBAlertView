@@ -91,7 +91,7 @@ static MBAlertView *currentAlert;
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(setRotation:)name:UIApplicationDidChangeStatusBarOrientationNotification object:nil];
         self.addsMask = YES;
     }
-    
+
     return self;
 }
 
@@ -101,10 +101,10 @@ static MBAlertView *currentAlert;
         displayQueue = [[NSMutableArray alloc] init];
     if(!dismissQueue)
         dismissQueue = [[NSMutableArray alloc] init];
-    
+
     [displayQueue addObject:self];
     [dismissQueue addObject:self];
-    
+
     if(retainQueue.count == 0 && !currentAlert)
     {
         // show now
@@ -118,13 +118,13 @@ static MBAlertView *currentAlert;
 }
 
 -(void)addToWindow
-{    
+{
     UIWindow * window = [UIApplication sharedApplication].keyWindow;
     if (!window)
         window = [[UIApplication sharedApplication].windows objectAtIndex:0];
 
     UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
-    
+
     if (self.addsMask && !self.maskView) {
         CGRect frame = window.frame;
         if(orientation == UIDeviceOrientationLandscapeLeft || orientation == UIDeviceOrientationLandscapeRight)
@@ -133,7 +133,7 @@ static MBAlertView *currentAlert;
         self.maskView.backgroundColor = [UIColor blackColor];
         self.maskView.alpha = 0.7;
     }
-    
+
     if(self.addsToWindow){
         if (self.maskView) {
             [window addSubview:self.maskView];
@@ -146,13 +146,13 @@ static MBAlertView *currentAlert;
         }
         [[[window subviews] objectAtIndex:0] addSubview:self.view];
     }
-    
+
     [self performLayoutOfButtons];
     [self centerViews];
-    
+
     self.titleLabel.frame = CGRectMake(self.titleLabel.frame.origin.x, self.titleLabel.frame.origin.y + self.titleInset, self.titleLabel.frame.size.width, self.titleLabel.frame.size.height);
-    
-    
+
+
     if(orientation == UIDeviceOrientationLandscapeLeft || orientation == UIDeviceOrientationLandscapeRight)
     {
         self.bodyLabelButton.frame = CGRectMake(self.bodyLabelButton.frame.origin.x, self.bodyLabelButton.frame.origin.y + self.bodyInset - 3, self.bodyLabelButton.frame.size.width, self.bodyLabelButton.frame.size.height);
@@ -161,9 +161,9 @@ static MBAlertView *currentAlert;
     {
         self.bodyLabelButton.frame = CGRectMake(self.bodyLabelButton.frame.origin.x, self.bodyLabelButton.frame.origin.y + self.bodyInset, self.bodyLabelButton.frame.size.width, self.bodyLabelButton.frame.size.height);
     }
-    
+
     [window resignFirstRespondersForSubviews];
-    
+
     [self addBounceAnimationToLayer:self.view.layer];
     [displayQueue removeObject:self];
 
@@ -191,10 +191,10 @@ static MBAlertView *currentAlert;
     if(isPendingDismissal)
         return;
     isPendingDismissal = YES;
-    
+
     if(!retainQueue)
         retainQueue = [[NSMutableArray alloc] init];
-    
+
     [self.hideTimer invalidate];
     [retainQueue addObject:self];
     [dismissQueue removeObject:self];
@@ -210,11 +210,11 @@ static MBAlertView *currentAlert;
     {
         ((void (^)())block)();
     }
-    
+
     [self.maskView removeFromSuperview];
     [self.view removeFromSuperview];
     [retainQueue removeObject:self];
-    
+
     if(displayQueue.count > 0)
     {
         MBAlertView *alert = [displayQueue objectAtIndex:0];
@@ -223,7 +223,7 @@ static MBAlertView *currentAlert;
     }
 }
 
-#pragma  mark - Buttons 
+#pragma  mark - Buttons
 
 
 -(void)didSelectButton:(MBAlertViewButton*)button
@@ -233,7 +233,7 @@ static MBAlertView *currentAlert;
     MBAlertViewItem *item = [_items objectAtIndex:button.tag];
     if(!item)
         return;
-    
+
     id block = item.block;
     if (![block isEqual:[NSNull null]] && block)
     {
@@ -246,9 +246,9 @@ static MBAlertView *currentAlert;
     {
         [[NSNotificationCenter defaultCenter] postNotificationName:MBAlertViewDidDismissNotification object:nil];
     }
-    
+
     if (item.dismissesAlert) {
-        [self performSelector:@selector(dismiss) withObject:nil afterDelay:0.12];        
+        [self performSelector:@selector(dismiss) withObject:nil afterDelay:0.12];
     }
 }
 
@@ -330,9 +330,9 @@ static MBAlertView *currentAlert;
     else{
         self.view.autoresizingMask = UIViewAutoresizingFlexibleBottomMargin + UIViewAutoresizingFlexibleTopMargin + UIViewAutoresizingFlexibleRightMargin + UIViewAutoresizingFlexibleLeftMargin;
     }
-    
+
     BOOL isFullScreen = [self isFullScreen];
-        
+
     if(orientation == UIDeviceOrientationLandscapeLeft || orientation == UIDeviceOrientationLandscapeRight)
     {
 //        self.size = CGSizeMake(self.size.width, self.size.height);
@@ -352,7 +352,7 @@ static MBAlertView *currentAlert;
         _backgroundButton = [[UIButton alloc] initWithFrame:CGRectIntegral(rect)];
         _contentRect = _backgroundButton.frame;
     }
-    
+
     if (self.backgroundImage) {
         [_backgroundButton setBackgroundColor:[UIColor clearColor]];
         CGSize refSize =self.backgroundImage.size;
@@ -401,9 +401,9 @@ static MBAlertView *currentAlert;
 {
     if(_bodyLabelButton)
         return _bodyLabelButton;
-    
+
     if (self.customBodyView) {
-        
+
         CGSize size = self.customBodyView.frame.size;
         CGSize constraint = [self labelConstraint];
         if (size.width > constraint.width) {
@@ -429,12 +429,12 @@ static MBAlertView *currentAlert;
         NSString *txt = [_bodyText stringByTruncatingToSize:size withFont:self.bodyFont addQuotes:NO];
         _bodyLabelButton = [[UIButton alloc] initWithFrame:CGRectMake(_contentRect.origin.x + _contentRect.size.width/2.0 - size.width/2.0 + self.contentEdgeInsets.left,
                                                                       CGRectGetMidY(_contentRect) - (size.height - _iconImageView.frame.size.height  - kIconLabelMargin)/2.0 + self.contentEdgeInsets.top - self.contentEdgeInsets.bottom,
-                                                                      size.width,
+                                                                      size.width - self.contentEdgeInsets.right - self.contentEdgeInsets.left,
                                                                       size.height)];
         _bodyLabelButton.autoresizingMask = [self defaultAutoResizingMask];
         [_bodyLabelButton addTarget:self action:@selector(didSelectBodyLabel:) forControlEvents:UIControlEventTouchUpInside];
         [_bodyLabelButton setTitle:_bodyText forState:UIControlStateNormal];
-        
+
         _bodyLabelButton.titleLabel.text = txt;
         _bodyLabelButton.titleLabel.font = self.bodyFont;
         _bodyLabelButton.titleLabel.numberOfLines = 0;
@@ -450,9 +450,9 @@ static MBAlertView *currentAlert;
 - (UILabel*) titleLabel
 {
     if (!_titleLabel) {
-        
+
         CGRect rect = _backgroundButton.frame;
-        
+
         CGSize size = [self titleConstraint];
         NSString *txt = [_titleText stringByTruncatingToSize:size withFont:self.titleFont addQuotes:NO];
         CGRect frame = CGRectMake(CGRectGetMidX(_contentRect) - size.width/2, CGRectGetMinY(_contentRect)+5, size.width, size.height);
@@ -465,7 +465,7 @@ static MBAlertView *currentAlert;
         [self.view addSubview:_titleLabel];
 
     }
-    
+
     return _titleLabel;
 }
 
@@ -488,16 +488,16 @@ static MBAlertView *currentAlert;
         _iconImageView.autoresizingMask = [self defaultAutoResizingMask];
         [self.view addSubview:self.iconImageView];
     }
-        
+
     UIColor *bodyColor = self.bodyTextColor? self.bodyTextColor : [UIColor whiteColor];
     UIColor *titleColor = self.titleTextColor? self.titleTextColor : [UIColor whiteColor];
     [self.bodyLabelButton setTitleColor:bodyColor forState:UIControlStateNormal];
     [self.titleLabel setTextColor:titleColor];
-    
+
     [_bodyLabelButton setBackgroundColor:[UIColor clearColor]];
 //    [self.view addSubview:_bodyLabelButton];
     _buttons = [[NSMutableArray alloc] init];
-    
+
     [self.items enumerateObjectsUsingBlock:^(MBAlertViewItem *item, NSUInteger index, BOOL *stop)
      {
          if (item.type != MBAlertViewItemTypeCustom) {
@@ -562,12 +562,12 @@ static MBAlertView *currentAlert;
         CGSize size = item.frame.size;
         totalWidth += size.width + kSpaceBetweenButtons;
     }
-    
+
     totalWidth -= kSpaceBetweenButtons;
-    
+
     int xOrigOfFirstItem = bounds.size.width/2.0 - totalWidth/2.0;
     __block float currentXOrigin = xOrigOfFirstItem;
-    
+
     [self.items enumerateObjectsUsingBlock:^(MBAlertViewItem *item, NSUInteger index, BOOL *stop)
      {
          UIButton *buttonLabel = [_buttons objectAtIndex:index];
@@ -575,10 +575,10 @@ static MBAlertView *currentAlert;
          if(index == 0)
              origin = currentXOrigin;
          else origin = currentXOrigin + kSpaceBetweenButtons;
-         
+
          currentXOrigin = origin + buttonLabel.bounds.size.width;
          int yOrigin = CGRectGetMaxY(_bodyLabelButton.frame);
-         
+
          CGRect rect = buttonLabel.frame;
          rect.origin = CGPointMake(origin, yOrigin);
          buttonLabel.frame = rect;
@@ -590,7 +590,7 @@ static MBAlertView *currentAlert;
              [self.view addSubview:buttonLabel];
 
      }];
-    
+
  //   UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
 /*
     if(orientation == UIDeviceOrientationLandscapeLeft || orientation == UIDeviceOrientationLandscapeRight)
@@ -598,26 +598,26 @@ static MBAlertView *currentAlert;
         CGSize size = [_bodyText sizeWithFont:self.bodyFont constrainedToSize:[self labelConstraint]];
         if (self.bodyCustomImage)
             size = self.bodyCustomImage.size;
-        
+
         bounds = CGRectMake(0, 0, _backgroundButton.frame.size.width, size.height + 140);
         int landscapeOffset = 10;
-        
+
         self.size = bounds.size;
         CGRect rect = CGRectMake(self.view.bounds.size.width/2.0 - self.size.width/2.0 , (self.view.bounds.size.height/2.0 - (self.size.height)/2.0) + landscapeOffset, self.size.width, self.size.height);
         _backgroundButton.frame = rect;
         _contentRect = _backgroundButton.frame;
-        
+
         self.titleLabel.frame = CGRectMake(self.titleLabel.frame.origin.x, _contentRect.origin.y+4, self.titleLabel.frame.size.width, self.titleLabel.frame.size.height);
     }
 */
     /*
-    
+
     UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
-    
+
     if(orientation == UIDeviceOrientationLandscapeLeft || orientation == UIDeviceOrientationLandscapeRight)
     {
         CGSize size = [_bodyText sizeWithFont:self.bodyFont constrainedToSize:[self labelConstraint]];
-        
+
         int heightIncrease = size.height - 50;
 
         self.size = CGSizeMake(self.size.width, self.size.height+heightIncrease);
@@ -649,13 +649,13 @@ static MBAlertView *currentAlert;
                             [NSValue valueWithCATransform3D:CATransform3DMakeScale(0.95, 0.95, 1)],
                             [NSValue valueWithCATransform3D:CATransform3DMakeScale(1.15, 1.15, 1)],
                             [NSValue valueWithCATransform3D:CATransform3DMakeScale(0.01, 0.01, 1.0)]];
-    
+
     NSArray *frameTimes = @[@(0.0), @(0.1), @(0.5), @(1.0)];
     CAKeyframeAnimation *animation = [self animationWithValues:frameValues times:frameTimes duration:kDismissDuration];
     animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
-    
+
     [self.view.layer addAnimation:animation forKey:@"popup"];
-    
+
     [self performSelector:@selector(hideWithFade) withObject:nil afterDelay:0.15];
 }
 
@@ -682,7 +682,7 @@ static MBAlertView *currentAlert;
                             [NSValue valueWithCATransform3D:CATransform3DMakeScale(0.95, 0.95, 1)],
                             [NSValue valueWithCATransform3D:CATransform3DMakeScale(1.02, 1.02, 1)],
                             [NSValue valueWithCATransform3D:CATransform3DMakeScale(1.0, 1.0, 1)]];
-    NSArray *frameTimes = @[@(0.0), @(0.1), @(0.7), @(0.9), @(1.0)];    
+    NSArray *frameTimes = @[@(0.0), @(0.1), @(0.7), @(0.9), @(1.0)];
     [bodyLabelButton.layer addAnimation:[self animationWithValues:frameValues times:frameTimes duration:0.3] forKey:@"popup"];
 }
 
