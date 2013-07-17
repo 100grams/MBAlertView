@@ -441,6 +441,7 @@ static MBAlertView *currentAlert;
         _bodyLabelButton.titleLabel.textAlignment = NSTextAlignmentCenter;
 
     }
+    _bodyLabelButton.titleLabel.lineBreakMode = UILineBreakModeWordWrap;
     [self.view addSubview:_bodyLabelButton];
     return _bodyLabelButton;
 }
